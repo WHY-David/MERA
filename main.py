@@ -4,7 +4,7 @@ import pickle
 from MERA import MERA
 
 # 1D quantum Ising model, at critical point g=1
-g = 1.2
+g = 1.
 
 s0 = np.eye(2)
 sX = np.array([[0, 1], [1, 0]], dtype=float)
