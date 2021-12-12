@@ -149,3 +149,8 @@ class Layer:
             rBA = (rBA + rBA.conj().transpose(2, 3, 0, 1))/2
             rBA = (rBA + rBA.transpose(1, 0, 3, 2))/2
         return rAB, rBA
+
+    def scaling_dim(self):
+        if self.chii != self.chio:
+            raise RuntimeError('Conformal functions are only for the scale-invariant layer')
+        chi = self.chii

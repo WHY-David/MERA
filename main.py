@@ -12,12 +12,12 @@ sZ = np.array([[1, 0], [0, -1]], dtype=float)
 hloc = -np.kron(sX, sX) - g*(np.kron(sZ, s0) + np.kron(s0, sZ))/2
 hAB = hBA = hloc.reshape(2, 2, 2, 2)
 
-model = MERA(hAB, hBA, chi=8)
-model.optimize(maxit=1000)
+model = MERA(hAB, hBA, chi=6)
+model.optimize(maxit=2000)
+model.expand(chi=8, num_trans=3)
+model.optimize(maxit=2000)
 model.expand(chi=10, num_trans=3)
-model.optimize(maxit=1000)
-model.expand(chi=12, num_trans=3)
-model.optimize(maxit=1000)
+model.optimize(maxit=2000)
 # model.expand(chi=16, num_trans=4)
 # model.optimize(3000)
 

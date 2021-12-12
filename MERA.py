@@ -69,22 +69,24 @@ class MERA:
                 self.layers[t].update(
                     hAB, hBA, self.layers[t+1].rAB, self.layers[t+1].rBA)
                 hAB, hBA = self.layers[t].ascend(hAB, hBA)
-            # calculate average h and update si_layer
-            hABbar, hBAbar = hAB, hBA
-            ABtemp, BAtemp = hAB, hBA
-            for _ in range(1):
-                ABtemp, BAtemp = self.si_layer.ascend(ABtemp/2, BAtemp/2)
-                hABbar += ABtemp
-                hBAbar += BAtemp
+            # # calculate average h and update si_layer
+            # hABbar, hBAbar = hAB, hBA
+            # ABtemp, BAtemp = hAB, hBA
+            # for _ in range(2):
+            #     ABtemp, BAtemp = self.si_layer.ascend(ABtemp/2, BAtemp/2)
+            #     hABbar += ABtemp
+            #     hBAbar += BAtemp
             self.si_layer.update(
-                hABbar, hBAbar, self.si_layer.rAB, self.si_layer.rBA)
+                hAB, hBA, self.si_layer.rAB, self.si_layer.rBA)
 
             if verbose and sweep % 10 == 0:
                 self.display(sweep, maxit)
 
     def display(self, sweep, maxit):
+        E0 = -4/np.pi
         Energy = (ncon([self.layers[0].rAB, self.hAB], [[1, 2, 3, 4], [1, 2, 3, 4]]) +
                   ncon([self.layers[0].rBA, self.hBA], [[1, 2, 3, 4], [1, 2, 3, 4]])) / 2 + self.bias
+        err = -(Energy-E0)/E0
 
         sx = np.array([[0, 1], [1, 0]])
         s0 = np.eye(2)
@@ -92,8 +94,8 @@ class MERA:
         ExpectX = ncon([(self.layers[0].rAB+self.layers[0].rBA)/2,
                        sx_big.reshape(2, 2, 2, 2)], [[1, 2, 3, 4], [1, 2, 3, 4]])
 
-        print('Iteration: %d of %d, Energy: %f, Mag: %e' %
-              (sweep, maxit, np.real(Energy), np.real(ExpectX)))
+        print('Iteration: %d of %d, Energy: %f, err: %f, Mag: %e' %
+              (sweep, maxit, np.real(Energy), np.real(err), np.real(ExpectX)))
 
     def expand(self, chi: int, num_trans: int):
         self.chi = chi
