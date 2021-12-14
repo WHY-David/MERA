@@ -88,11 +88,11 @@ class MERA:
                   ncon([self.layers[0].rBA, self.hBA], [[1, 2, 3, 4], [1, 2, 3, 4]])) / 2 + self.bias
         err = -(Energy-E0)/E0
 
-        sx = np.array([[0, 1], [1, 0]])
-        s0 = np.eye(2)
-        sx_big = (np.kron(s0, sx) + np.kron(sx, s0))/2
-        ExpectX = ncon([(self.layers[0].rAB+self.layers[0].rBA)/2,
-                       sx_big.reshape(2, 2, 2, 2)], [[1, 2, 3, 4], [1, 2, 3, 4]])
+        # sx = np.array([[0, 1], [1, 0]])
+        # s0 = np.eye(2)
+        # sx_big = (np.kron(s0, sx) + np.kron(sx, s0))/2
+        # ExpectX = ncon([(self.layers[0].rAB+self.layers[0].rBA)/2,
+        #                sx_big.reshape(2, 2, 2, 2)], [[1, 2, 3, 4], [1, 2, 3, 4]])
 
         print('Iteration: %d of %d, Energy: %f, err: %f, Mag: %e' %
               (sweep, maxit, np.real(Energy), np.real(err), np.real(ExpectX)))
