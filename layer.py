@@ -17,27 +17,23 @@ class Layer:
         self.chii = chii
         self.chio = chio if chio else chii
         # initialize tensors
-        self.u = u if u else self.random_disentangler(self.chii)
+        self.u = u if u else np.eye(chii**2).reshape(chii, chii, chii, chii)
         self.w = w if w else self.random_isometry(self.chii, self.chio)
         # initialize density matrix
-        # self.rAB = self.rBA = np.eye(
-        #     chii**2).reshape(chii, chii, chii, chii)/chii**2
-        self.rAB = np.random.rand(chii, chii, chii, chii)
-        self.rBA = np.random.rand(chii, chii, chii, chii)
+        self.rAB = self.rBA = np.eye(
+            chii**2).reshape(chii, chii, chii, chii)/chii**2
+        # self.rAB = np.random.rand(chii, chii, chii, chii)
+        # self.rBA = np.random.rand(chii, chii, chii, chii)
 
-    def update(self, hAB, hBA, rAB, rBA):
+    def update(self, hAB, hBA, rAB, rBA, pinu=False, pinw=False):
         '''
         h from layer tau-1
         rho from layer tau+1
         '''
-        self.u = self.svd_update(self.u_env(hAB, hBA, rAB, rBA), 2)
-        self.w = self.svd_update(self.w_env(hAB, hBA, rAB, rBA), 2)
-
-    def export(self):
-        data = {}
-        data['u'] = self.u
-        data['w'] = self.w
-        return data
+        if not pinu:
+            self.u = self.svd_update(self.u_env(hAB, hBA, rAB, rBA), 2)
+        if not pinw:
+            self.w = self.svd_update(self.w_env(hAB, hBA, rAB, rBA), 2)
 
     def u_env(self, hAB, hBA, rAB, rBA):
         '''
@@ -117,7 +113,8 @@ class Layer:
 
         rBAout = ncon([rBA, self.w, self.w.conj(), self.u, self.u.conj(), self.w, self.w.conj()], [
                       [3, 6, 2, 5], [1, 7, 2], [1, 9, 3], [-3, -4, 7, 8], [-1, -2, 9, 10], [4, 8, 5], [4, 10, 6]])
-        rBAout = (rBAout+rBAout.transpose(1, 0, 3, 2))/2
+        rBAout += ncon([rAB, self.w, self.w.conj(), self.w, self.w.conj()], [[3, 6, 2, 5], [-3, 1, 2], [-1, 1, 3], [-4, 4, 5], [-2, 4, 6]])
+        rBAout /= 2
 
         return rABout, rBAout
 
@@ -133,7 +130,7 @@ class Layer:
         self.chii = chii
         self.chio = chio
 
-    def DM_fixed_point(self, rAB, rBA, power=5):
+    def DM_fixed_point(self, rAB, rBA, power=4):
         '''
         obtain scale-invariant density matrix
         power method

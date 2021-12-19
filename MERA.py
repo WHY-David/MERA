@@ -57,30 +57,27 @@ class MERA:
             # prepare Hamiltonian at tau=0
             hAB, hBA = self.hAB, self.hBA
             # prepare scale-invariant DM
-            self.si_layer.rAB, self.si_layer.rBA = self.si_layer.DM_fixed_point(
+            si_rAB, si_rBA = self.si_layer.DM_fixed_point(
                 self.si_layer.rAB, self.si_layer.rBA)
             # descend DM through all layers
+            self.si_layer.rAB, self.si_layer.rBA = self.si_layer.descend(si_rAB, si_rBA)
             for t in reversed(range(self.num_layers-1)):
                 self.layers[t].rAB, self.layers[t].rBA = self.layers[t].descend(
                     self.layers[t+1].rAB, self.layers[t+1].rBA)
 
-            # update layers
-            for t in range(self.num_layers-1):
-                self.layers[t].update(
-                    hAB, hBA, self.layers[t+1].rAB, self.layers[t+1].rBA)
-                hAB, hBA = self.layers[t].ascend(hAB, hBA)
-            # # calculate average h and update si_layer
-            # hABbar, hBAbar = hAB, hBA
-            # ABtemp, BAtemp = hAB, hBA
-            # for _ in range(2):
-            #     ABtemp, BAtemp = self.si_layer.ascend(ABtemp/2, BAtemp/2)
-            #     hABbar += ABtemp
-            #     hBAbar += BAtemp
-            self.si_layer.update(
-                hAB, hBA, self.si_layer.rAB, self.si_layer.rBA)
-
             if verbose and sweep % 10 == 0:
                 self.display(sweep, maxit)
+
+            # update layers
+            pinu = sweep<=8
+            pinw = sweep<=1
+            for t in range(self.num_layers-1):
+                self.layers[t].update(
+                    hAB, hBA, self.layers[t+1].rAB, self.layers[t+1].rBA, pinu, pinw)
+                hAB, hBA = self.layers[t].ascend(hAB, hBA)
+
+            self.si_layer.update(
+                hAB, hBA, self.si_layer.rAB, self.si_layer.rBA, pinu, pinw)
 
     def display(self, sweep, maxit):
         E0 = -4/np.pi
@@ -100,7 +97,7 @@ class MERA:
         elif self.chiP == 4:
             ExpectX = ncon([self.layers[0].rAB.reshape(2, 2, 2, 2, 2, 2, 2, 2), sx], [[4, 1, 2, 3, 5, 1, 2, 3], [4, 5]])
 
-        print('Iteration: %d of %d, Energy: %f, err: %f, Mag: %e' %
+        print('Iteration: %d of %d, Energy: %f, err: %e, Mag: %e' %
               (sweep, maxit, np.real(Energy), np.real(err), np.real(ExpectX)))
 
     def expand(self, chi: int, num_trans: int):
